@@ -54,7 +54,11 @@ func handleFileUpload(ctx *fiber.Ctx) error {
 		ShareCode: str,
 	}
 
-	err = database.SaveFile(fileRecord)
+	fid, err := database.SaveFile(fileRecord)
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "", nil)
+	}
+	err = database.GrantFileAccess(uid, fid)
 	if err != nil {
 		return sendCommonResponse(ctx, 500, "", nil)
 	}

@@ -38,20 +38,27 @@ func GetFilesByUid(uid int) ([]structs.File, error) {
 	return files, nil
 }
 
-func SaveFile(file structs.File) error {
-	_, err := db.Exec(`
+func SaveFile(file structs.File) (int, error) {
+	result, err := db.Exec(`
 		INSERT INTO 
 		file(hash,path,uid,share_code)
 		VALUES (?,?,?,?)
 	`, file.Hash, file.Path, file.Uid, file.ShareCode)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to save file path")
-		return err
+		return 0, err
 	}
-	return nil
+
+	fid, err := result.LastInsertId()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get last insert ID")
+		return 0, err
+	}
+
+	return int(fid), nil
 }
 
-func grantFileAccess(uid, fid int) error {
+func GrantFileAccess(uid, fid int) error {
 	_, err := db.Exec("INSERT INTO user_access (user_id, file_id) VALUES (?, ?)", uid, fid)
 	if err != nil {
 		return err
@@ -67,7 +74,7 @@ func GrantFileAccessIfValidShareCode(uid int, shareCode string) error {
 	}
 
 	// 更新用户文件访问权限
-	err = grantFileAccess(uid, fid)
+	err = GrantFileAccess(uid, fid)
 	if err != nil {
 		return err
 	}

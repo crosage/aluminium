@@ -44,6 +44,7 @@ func InitHandlers(app *fiber.App) {
 	app.Post("/api/file/check-share", checkShareCode)
 	app.Get("/api/file/created-files", getUserCreatedFiles)
 	app.Get("/api/file/available-files", getUserAvailableFiles)
+	app.Get("/api/file/:fid", getFileByFid)
 }
 
 func sendCommonResponse(ctx *fiber.Ctx, code int, message string, data map[string]interface{}) error {

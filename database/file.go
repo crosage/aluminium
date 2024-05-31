@@ -66,6 +66,15 @@ func GrantFileAccess(uid, fid int) error {
 	return nil
 }
 
+func GetFileAccess(uid, fid int) (bool, error) {
+	var exists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM user_access WHERE user_id = ? AND file_id = ?)", uid, fid).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
 func GrantFileAccessIfValidShareCode(uid int, shareCode string) error {
 	var fid int
 	err := db.QueryRow("SELECT fid FROM file WHERE share_code = ?", shareCode).Scan(&fid)
@@ -86,11 +95,11 @@ func GetFilesAvailableByUid(uid int) ([]structs.File, error) {
 	var files []structs.File
 
 	rows, err := db.Query(`
-	SELECT 
-	f.hash,f.path,f.name
-	FROM file f 
-	INNER JOIN user_access ua
-	ON f.fid=ua.file_id WHERE ua.user_id=?
+		SELECT 
+		f.hash,f.path,f.name,f.fid,f.uid
+		FROM file f 
+		INNER JOIN user_access ua
+		ON f.fid=ua.file_id WHERE ua.user_id=?
 	`, uid)
 	if err != nil {
 		return nil, err
@@ -99,10 +108,25 @@ func GetFilesAvailableByUid(uid int) ([]structs.File, error) {
 
 	for rows.Next() {
 		var file structs.File
-		if err := rows.Scan(&file.Hash, &file.Path, &file.Name); err != nil {
+		if err := rows.Scan(&file.Hash, &file.Path, &file.Name, &file.Fid, &file.Fid); err != nil {
 			return nil, err
 		}
 		files = append(files, file)
 	}
 	return files, nil
+}
+
+func GetFileByFid(fid int) (structs.File, error) {
+	var file structs.File
+	err := db.QueryRow(`
+		SELECT 
+		f.hash,f.path,f.name,f.fid,f.uid
+		FROM file f 
+		INNER JOIN user_access ua
+		ON f.fid=ua.file_id WHERE f.fid=?
+	`, fid).Scan(&file.Hash, &file.Path, &file.Name, &file.Fid, &file.Uid)
+	if err != nil {
+		return file, err
+	}
+	return file, nil
 }

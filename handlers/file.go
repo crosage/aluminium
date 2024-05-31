@@ -11,6 +11,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"io"
 	"os"
+	"strconv"
 )
 
 func handleFileUpload(ctx *fiber.Ctx) error {
@@ -83,9 +84,7 @@ func checkShareCode(ctx *fiber.Ctx) error {
 	}
 	var share_code ShareCodeRequest
 	err := jsoniter.Unmarshal(ctx.Body(), &share_code)
-	fmt.Println("asdjkhsakfhjkasfgk")
 	if err != nil {
-		fmt.Println("#################")
 		return sendCommonResponse(ctx, 500, "", nil)
 	}
 	err = database.GrantFileAccessIfValidShareCode(user.Uid, share_code.ShareCode)
@@ -118,7 +117,6 @@ func getUserCreatedFiles(ctx *fiber.Ctx) error {
 
 func getUserAvailableFiles(ctx *fiber.Ctx) error {
 	hasPermission := validatePermission(ctx)
-	fmt.Println(getSessionUser(ctx))
 	if !hasPermission {
 		return sendCommonResponse(ctx, 403, "无权限", nil)
 	}
@@ -133,4 +131,32 @@ func getUserAvailableFiles(ctx *fiber.Ctx) error {
 		"total": len(files),
 		"files": files,
 	})
+}
+
+func getFileByFid(ctx *fiber.Ctx) error {
+	hasPermission := validatePermission(ctx)
+	if !hasPermission {
+		return sendCommonResponse(ctx, 403, "无权限", nil)
+	}
+	user := getSessionUser(ctx)
+	uid := user.Uid
+	fidStr := ctx.Params("fid")
+	fid, err := strconv.Atoi(fidStr)
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "服务器内部错误", nil)
+	}
+	exist, err := database.GetFileAccess(uid, fid)
+	if exist == false {
+		return sendCommonResponse(ctx, 403, "该用户没有该文件权限", nil)
+	}
+	file, err := database.GetFileByFid(fid)
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "获取文件错误", nil)
+	}
+	filePath := file.Path
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return sendCommonResponse(ctx, 404, "文件不存在", nil)
+	}
+	ctx.Set("Content-Disposition", "attachment; filename="+filePath)
+	return ctx.SendFile(filePath)
 }

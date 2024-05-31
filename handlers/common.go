@@ -42,7 +42,7 @@ func InitHandlers(app *fiber.App) {
 	app.Post("/api/file/upload", handleFileUpload)
 	app.Post("/api/file/checkShare", checkShareCode)
 	app.Get("/api/file/created-files", getUserCreatedFiles)
-	app.Post("/api/file/available-files", getUserAvailableFiles)
+	app.Get("/api/file/available-files", getUserAvailableFiles)
 }
 
 func sendCommonResponse(ctx *fiber.Ctx, code int, message string, data map[string]interface{}) error {

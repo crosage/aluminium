@@ -3,6 +3,8 @@ package handlers
 import (
 	"chain/structs"
 	"chain/utils"
+	"crypto/rand"
+	"encoding/base64"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -71,4 +73,13 @@ func getSessionUser(ctx *fiber.Ctx) structs.User {
 	user.Uid = int(claims["uid"].(float64))
 	user.Username = claims["username"].(string)
 	return user
+}
+
+func generateRandomString(length int) (string, error) {
+	randomBytes := make([]byte, length)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(randomBytes)[:length], nil
 }

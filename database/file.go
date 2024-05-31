@@ -2,7 +2,6 @@ package database
 
 import (
 	"chain/structs"
-	"chain/utils"
 	"github.com/rs/zerolog/log"
 )
 
@@ -18,7 +17,6 @@ func GetFilesByUid(uid int) ([]structs.File, error) {
 	for rows.Next() {
 		var file structs.File
 		err := rows.Scan(&file.Hash, &file.Path, &file.ShareCode)
-		file.ShareCode = utils.Decrypt(file.ShareCode)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to scan file row")
 			return nil, err
@@ -41,15 +39,38 @@ func GetFilesByUid(uid int) ([]structs.File, error) {
 }
 
 func SaveFile(file structs.File) error {
-	encryptedShareCode := utils.Encrypt(file.ShareCode)
 	_, err := db.Exec(`
 		INSERT INTO 
 		file(hash,path,uid,share_code)
 		VALUES (?,?,?,?)
-	`, file.Hash, file.Path, file.Uid, encryptedShareCode)
+	`, file.Hash, file.Path, file.Uid, file.ShareCode)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to save file path")
 		return err
 	}
+	return nil
+}
+
+func grantFileAccess(uid, fid int) error {
+	_, err := db.Exec("INSERT INTO user_access (user_id, file_id) VALUES (?, ?)", uid, fid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GrantFileAccessIfValidShareCode(uid int, shareCode string) error {
+	var fid int
+	err := db.QueryRow("SELECT id FROM file WHERE share_code = ?", shareCode).Scan(&fid)
+	if err != nil {
+		return err
+	}
+
+	// 更新用户文件访问权限
+	err = grantFileAccess(uid, fid)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

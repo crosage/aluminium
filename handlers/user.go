@@ -64,7 +64,6 @@ func userLogin(ctx *fiber.Ctx) error {
 
 func getAllUsers(ctx *fiber.Ctx) error {
 	hasPermission := validatePermission(ctx)
-	getSessionUser(ctx)
 	if !hasPermission {
 		return sendCommonResponse(ctx, 403, "无权限", nil)
 	}

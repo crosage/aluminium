@@ -2,11 +2,12 @@ package database
 
 import (
 	"chain/structs"
+	"chain/utils"
 	"github.com/rs/zerolog/log"
 )
 
-func GetUserFiles(uid int) ([]structs.File, error) {
-	rows, err := db.Query("SELECT hash, path FROM file WHERE uid = ?", uid)
+func GetFilesByUid(uid int) ([]structs.File, error) {
+	rows, err := db.Query("SELECT hash, path, share_code FROM file WHERE uid = ?", uid)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to execute query for getting user files")
 		return nil, err
@@ -16,7 +17,8 @@ func GetUserFiles(uid int) ([]structs.File, error) {
 	var files []structs.File
 	for rows.Next() {
 		var file structs.File
-		err := rows.Scan(&file.Hash, &file.Path)
+		err := rows.Scan(&file.Hash, &file.Path, &file.ShareCode)
+		file.ShareCode = utils.Decrypt(file.ShareCode)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to scan file row")
 			return nil, err
@@ -39,11 +41,12 @@ func GetUserFiles(uid int) ([]structs.File, error) {
 }
 
 func SaveFile(file structs.File) error {
+	encryptedShareCode := utils.Encrypt(file.ShareCode)
 	_, err := db.Exec(`
 		INSERT INTO 
-		file(hash,path,uid)
-		VALUES (?,?,?)
-	`, file.Hash, file.Path, file.Uid)
+		file(hash,path,uid,share_code)
+		VALUES (?,?,?,?)
+	`, file.Hash, file.Path, file.Uid, encryptedShareCode)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to save file path")
 		return err

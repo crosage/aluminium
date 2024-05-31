@@ -25,22 +25,22 @@ func createTables() {
 		passhash TEXT,
 		type INTEGER
 	)`
-
 	createFileTableSQL := `
 	CREATE TABLE IF NOT EXISTS file (
 		hash TEXT NOT NULL,
 		path TEXT NOT NULL,
 		uid INTEGER,
-		FOREIGN KEY(uid) REFERENCES users(uid)
+		share_code TEXT,
+		FOREIGN KEY(uid) REFERENCES user(uid)
 	)`
-
-	createFilePermissionTableSQL := `
-    CREATE TABLE IF NOT EXISTS file_permission (
-        file_hash TEXT,
-        uid INTEGER,
-        FOREIGN KEY(file_hash) REFERENCES file(hash),
-        FOREIGN KEY(uid) REFERENCES user(uid)
-    )`
+	createFileAccessTableSQL := `
+	CREATE TABLE IF NOT EXISTS user_access (
+		user_id INTEGER,
+		file_id INTEGER,
+		FOREIGN KEY(user_id) REFERENCES user(uid),
+		FOREIGN KEY(file_id) REFERENCES file(id),
+		PRIMARY KEY (user_id, file_id)
+	)`
 	_, err := db.Exec(createUserTableSQL)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Fail to create user table")
@@ -51,8 +51,8 @@ func createTables() {
 		log.Fatal().Err(err).Msg("Fail to create file table")
 	}
 
-	_, err = db.Exec(createFilePermissionTableSQL)
+	_, err = db.Exec(createFileAccessTableSQL)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Fail to create file_permission table")
+		log.Fatal().Err(err).Msg("Fail to create file_access table")
 	}
 }

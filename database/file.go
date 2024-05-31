@@ -68,7 +68,7 @@ func GrantFileAccess(uid, fid int) error {
 
 func GrantFileAccessIfValidShareCode(uid int, shareCode string) error {
 	var fid int
-	err := db.QueryRow("SELECT id FROM file WHERE share_code = ?", shareCode).Scan(&fid)
+	err := db.QueryRow("SELECT fid FROM file WHERE share_code = ?", shareCode).Scan(&fid)
 	if err != nil {
 		return err
 	}

@@ -83,13 +83,16 @@ func checkShareCode(ctx *fiber.Ctx) error {
 	}
 	var share_code ShareCodeRequest
 	err := jsoniter.Unmarshal(ctx.Body(), &share_code)
+	fmt.Println("asdjkhsakfhjkasfgk")
 	if err != nil {
+		fmt.Println("#################")
 		return sendCommonResponse(ctx, 500, "", nil)
 	}
 	err = database.GrantFileAccessIfValidShareCode(user.Uid, share_code.ShareCode)
 	if err == sql.ErrNoRows {
 		return sendCommonResponse(ctx, 403, "不存在对应文件", nil)
 	} else if err != nil {
+		fmt.Println(err)
 		return sendCommonResponse(ctx, 500, "服务器内部错误", nil)
 	} else {
 		return sendCommonResponse(ctx, 200, "", nil)
@@ -109,7 +112,7 @@ func getUserCreatedFiles(ctx *fiber.Ctx) error {
 	}
 	return sendCommonResponse(ctx, 200, "成功", map[string]interface{}{
 		"total": len(files),
-		"users": files,
+		"files": files,
 	})
 }
 
@@ -128,6 +131,6 @@ func getUserAvailableFiles(ctx *fiber.Ctx) error {
 	}
 	return sendCommonResponse(ctx, 200, "成功", map[string]interface{}{
 		"total": len(files),
-		"users": files,
+		"files": files,
 	})
 }

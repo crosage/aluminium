@@ -106,3 +106,20 @@ func getUserCreatedFiles(ctx *fiber.Ctx) error {
 		"users": files,
 	})
 }
+
+func getUserAvailableFiles(ctx *fiber.Ctx) error {
+	hasPermission := validatePermission(ctx)
+	if !hasPermission {
+		return sendCommonResponse(ctx, 403, "无权限", nil)
+	}
+	user := getSessionUser(ctx)
+	uid := user.Uid
+	files, err := database.GetFilesAvailableByUid(uid)
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "", nil)
+	}
+	return sendCommonResponse(ctx, 200, "成功", map[string]interface{}{
+		"total": len(files),
+		"users": files,
+	})
+}

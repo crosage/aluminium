@@ -5,6 +5,7 @@ import (
 	"chain/utils"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -64,6 +65,8 @@ func validatePermission(ctx *fiber.Ctx) bool {
 	userLocal := ctx.Locals("user").(*jwt.Token)
 	claims := userLocal.Claims.(jwt.MapClaims)
 	userType := int(claims["usertype"].(float64))
+	fmt.Println("*********")
+	fmt.Println(userType)
 	return userType > 0
 }
 

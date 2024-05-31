@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
 	"io"
@@ -43,9 +44,14 @@ func handleFileUpload(ctx *fiber.Ctx) error {
 	destPath := "./uploads/" + file.Filename
 	dest, err := os.Create(destPath)
 	if err != nil {
-		return sendCommonResponse(ctx, 500, "", nil)
+		fmt.Println(err)
+		return sendCommonResponse(ctx, 500, "无法保存文件", nil)
 	}
 	defer dest.Close()
+
+	if _, err := io.Copy(dest, src); err != nil {
+		return sendCommonResponse(ctx, 500, "无法保存文件", nil)
+	}
 	str, _ := generateRandomString(16)
 	fileRecord := structs.File{
 		Hash:      hashStr,
@@ -109,6 +115,7 @@ func getUserCreatedFiles(ctx *fiber.Ctx) error {
 
 func getUserAvailableFiles(ctx *fiber.Ctx) error {
 	hasPermission := validatePermission(ctx)
+	fmt.Println(getSessionUser(ctx))
 	if !hasPermission {
 		return sendCommonResponse(ctx, 403, "无权限", nil)
 	}

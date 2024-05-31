@@ -41,7 +41,7 @@ func InitHandlers(app *fiber.App) {
 	app.Post("/api/user/:uid", updateUser)
 	app.Delete("/api/user/:uid", deleteUser)
 	app.Post("/api/file/upload", handleFileUpload)
-	app.Post("/api/file/checkShare", checkShareCode)
+	app.Post("/api/file/check-share", checkShareCode)
 	app.Get("/api/file/created-files", getUserCreatedFiles)
 	app.Get("/api/file/available-files", getUserAvailableFiles)
 }

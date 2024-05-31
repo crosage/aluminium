@@ -27,6 +27,7 @@ func createTables() {
 	)`
 	createFileTableSQL := `
 	CREATE TABLE IF NOT EXISTS file (
+	    fid INTEGER PRIMARY KEY AUTOINCREMENT,
 		hash TEXT NOT NULL,
 		path TEXT NOT NULL,
 		name TEXT NOT NULL,
@@ -39,7 +40,7 @@ func createTables() {
 		user_id INTEGER,
 		file_id INTEGER,
 		FOREIGN KEY(user_id) REFERENCES user(uid),
-		FOREIGN KEY(file_id) REFERENCES file(id),
+		FOREIGN KEY(file_id) REFERENCES file(fid),
 		PRIMARY KEY (user_id, file_id)
 	)`
 	_, err := db.Exec(createUserTableSQL)

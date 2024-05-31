@@ -123,6 +123,7 @@ func getUserAvailableFiles(ctx *fiber.Ctx) error {
 	uid := user.Uid
 	files, err := database.GetFilesAvailableByUid(uid)
 	if err != nil {
+		fmt.Println(err)
 		return sendCommonResponse(ctx, 500, "", nil)
 	}
 	return sendCommonResponse(ctx, 200, "成功", map[string]interface{}{

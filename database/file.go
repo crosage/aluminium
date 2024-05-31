@@ -90,7 +90,7 @@ func GetFilesAvailableByUid(uid int) ([]structs.File, error) {
 	f.hash,f.path,f.name
 	FROM file f 
 	INNER JOIN user_access ua
-	ON f.id=ua.fild_id WHERE ua.user_id=?
+	ON f.fid=ua.fild_id WHERE ua.user_id=?
 	`, uid)
 	if err != nil {
 		return nil, err

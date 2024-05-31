@@ -29,6 +29,7 @@ func createTables() {
 	CREATE TABLE IF NOT EXISTS file (
 		hash TEXT NOT NULL,
 		path TEXT NOT NULL,
+		name TEXT NOT NULL,
 		uid INTEGER,
 		share_code TEXT,
 		FOREIGN KEY(uid) REFERENCES user(uid)

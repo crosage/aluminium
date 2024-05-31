@@ -52,6 +52,7 @@ func handleFileUpload(ctx *fiber.Ctx) error {
 		Path:      destPath,
 		Uid:       uid,
 		ShareCode: str,
+		Name:      file.Filename,
 	}
 
 	fid, err := database.SaveFile(fileRecord)
@@ -87,4 +88,21 @@ func checkShareCode(ctx *fiber.Ctx) error {
 	} else {
 		return sendCommonResponse(ctx, 200, "", nil)
 	}
+}
+
+func getUserCreatedFiles(ctx *fiber.Ctx) error {
+	hasPermission := validatePermission(ctx)
+	if !hasPermission {
+		return sendCommonResponse(ctx, 403, "无权限", nil)
+	}
+	user := getSessionUser(ctx)
+	uid := user.Uid
+	files, err := database.GetFilesCreatedByUid(uid)
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "", nil)
+	}
+	return sendCommonResponse(ctx, 200, "成功", map[string]interface{}{
+		"total": len(files),
+		"users": files,
+	})
 }

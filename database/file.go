@@ -5,8 +5,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func GetFilesByUid(uid int) ([]structs.File, error) {
-	rows, err := db.Query("SELECT hash, path, share_code FROM file WHERE uid = ?", uid)
+func GetFilesCreatedByUid(uid int) ([]structs.File, error) {
+	rows, err := db.Query("SELECT hash, path, share_code,name FROM file WHERE uid = ?", uid)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to execute query for getting user files")
 		return nil, err
@@ -16,7 +16,7 @@ func GetFilesByUid(uid int) ([]structs.File, error) {
 	var files []structs.File
 	for rows.Next() {
 		var file structs.File
-		err := rows.Scan(&file.Hash, &file.Path, &file.ShareCode)
+		err := rows.Scan(&file.Hash, &file.Path, &file.ShareCode, &file.Name)
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to scan file row")
 			return nil, err
@@ -41,9 +41,9 @@ func GetFilesByUid(uid int) ([]structs.File, error) {
 func SaveFile(file structs.File) (int, error) {
 	result, err := db.Exec(`
 		INSERT INTO 
-		file(hash,path,uid,share_code)
-		VALUES (?,?,?,?)
-	`, file.Hash, file.Path, file.Uid, file.ShareCode)
+		file(hash,path,uid,share_code,name)
+		VALUES (?,?,?,?,?)
+	`, file.Hash, file.Path, file.Uid, file.ShareCode, file.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to save file path")
 		return 0, err
@@ -80,4 +80,29 @@ func GrantFileAccessIfValidShareCode(uid int, shareCode string) error {
 	}
 
 	return nil
+}
+
+func GetFilesAvailableByUid(uid int) ([]structs.File, error) {
+	var files []structs.File
+
+	rows, err := db.Query(`
+	SELECT 
+	f.hash,f.path,f.name
+	FROM file f 
+	INNER JOIN user_access ua
+	ON f.id=ua.fild_id WHERE ua.user_id=?
+	`, uid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var file structs.File
+		if err := rows.Scan(&file.Hash, &file.Path, &file.Name); err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+	}
+	return files, nil
 }

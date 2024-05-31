@@ -22,7 +22,6 @@ func InitHandlers(app *fiber.App) {
 
 	app.Post("/api/user", userRegister)
 	app.Post("/api/user/login", userLogin)
-	//app.Get("/good/:gid/image", getGoodImage)
 
 	// Register middleware
 	app.Use(jwtware.New(jwtware.Config{

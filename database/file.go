@@ -59,7 +59,7 @@ func SaveFile(file structs.File) (int, error) {
 }
 
 func GrantFileAccess(uid, fid int) error {
-	_, err := db.Exec("INSERT INTO user_access (user_id, file_id) VALUES (?, ?)", uid, fid)
+	_, err := db.Exec("INSERT OR REPLACE INTO user_access (user_id, file_id) VALUES (?, ?)", uid, fid)
 	if err != nil {
 		return err
 	}

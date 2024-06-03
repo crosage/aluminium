@@ -54,9 +54,18 @@ func GetAllUsers() (int, []structs.User, error) {
 	return count, users, nil
 }
 
-func GetPassHash(username string) (structs.User, error) {
+func GetUserByUsername(username string) (structs.User, error) {
 	var user structs.User
-	err := db.QueryRow("SELECT uid, passhash, type FROM user WHERE `username`=?", username).Scan(&user.Uid, &user.Password, &user.Type)
+	err := db.QueryRow("SELECT uid, username, type, passhash FROM user WHERE `username`=?", username).Scan(&user.Uid, &user.Username, &user.Type, &user.Password)
+	if err != nil {
+		return structs.User{}, err
+	}
+	return user, nil
+}
+
+func GetUserByUid(uid int) (structs.User, error) {
+	var user structs.User
+	err := db.QueryRow("SELECT uid, username, type, passhash FROM user WHERE `uid`=?", uid).Scan(&user.Uid, &user.Username, &user.Type, &user.Password)
 	if err != nil {
 		return structs.User{}, err
 	}

@@ -130,3 +130,27 @@ func GetFileByFid(fid int) (structs.File, error) {
 	}
 	return file, nil
 }
+
+func DeleteFileByFid(fid int) error {
+	_, err := db.Exec(`DELETE FROM file WHERE fid = ?`, fid)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`DELETE FROM user_access where user_access.file_id=?`, fid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateFileByFid(f structs.File) error {
+	_, err := db.Exec(`
+	UPDATE file 
+	SET hash = ?,path=?,name=?,share_code=?
+	WHERE fid = ?
+	`, f.Hash, f.Path, f.Name, f.ShareCode, f.Fid)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -19,7 +19,7 @@ func userRegister(ctx *fiber.Ctx) error {
 		return sendCommonResponse(ctx, 403, "非法输入", nil)
 	}
 
-	user.Type = 0
+	user.Type = 1
 
 	err = database.CreateUser(user)
 	if err != nil {
@@ -34,7 +34,7 @@ func userLogin(ctx *fiber.Ctx) error {
 	if err != nil {
 		return sendCommonResponse(ctx, 403, "非法输入", nil)
 	}
-	queriedUser, err := database.GetPassHash(user.Username)
+	queriedUser, err := database.GetUserByUsername(user.Username)
 	if err == sql.ErrNoRows {
 		return sendCommonResponse(ctx, 403, "用户不存在", nil)
 	}

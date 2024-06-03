@@ -39,11 +39,13 @@ func InitHandlers(app *fiber.App) {
 	app.Get("/api/user", getAllUsers)
 	app.Post("/api/user/:uid", updateUser)
 	app.Delete("/api/user/:uid", deleteUser)
+	app.Delete("/api/file/:fid", handleFileDelete)
 	app.Post("/api/file/upload", handleFileUpload)
 	app.Post("/api/file/check-share", checkShareCode)
 	app.Get("/api/file/created-files", getUserCreatedFiles)
 	app.Get("/api/file/available-files", getUserAvailableFiles)
 	app.Get("/api/file/:fid", getFileByFid)
+	app.Post("/api/file/:fid", handleFileUpdate)
 }
 
 func sendCommonResponse(ctx *fiber.Ctx, code int, message string, data map[string]interface{}) error {

@@ -25,18 +25,18 @@ func handleFileUpload(ctx *fiber.Ctx) error {
 	if err != nil {
 		return sendCommonResponse(ctx, 400, "", nil)
 	}
-
+	fmt.Println("111111111111111")
 	src, err := file.Open()
 	if err != nil {
 		return sendCommonResponse(ctx, 500, "无法打开文件", nil)
 	}
 	defer src.Close()
-
+	fmt.Println("22222222222222")
 	hash := sha256.New()
 	if _, err := io.Copy(hash, src); err != nil {
 		return sendCommonResponse(ctx, 500, "无法生成文件哈希", nil)
 	}
-
+	fmt.Println("33333333333333")
 	hashStr := hex.EncodeToString(hash.Sum(nil))
 	if _, err := src.Seek(0, io.SeekStart); err != nil {
 		return sendCommonResponse(ctx, 500, "无法重置文件指针", nil)
@@ -47,13 +47,13 @@ func handleFileUpload(ctx *fiber.Ctx) error {
 		return sendCommonResponse(ctx, 500, "", nil)
 	}
 	fileusername := fileuser.Username
-	destPath := "./uploads/" + fileusername + file.Filename
+	destPath := "./uploads/" + fileusername
 	err = os.MkdirAll(destPath, 0755)
 	if err != nil {
 		return sendCommonResponse(ctx, 500, "创建用户目录失败", nil)
 	}
 
-	destPath = destPath + file.Filename
+	destPath = destPath + "/" + file.Filename
 	dest, err := os.Create(destPath)
 	if err != nil {
 		fmt.Println(err)
@@ -233,7 +233,11 @@ func handleFileUpdate(ctx *fiber.Ctx) error {
 	if err != nil {
 		return sendCommonResponse(ctx, 500, "", nil)
 	}
-	destPath := "./uploads/" + username.Username + "/" + file.Filename
+	tmpfile, err := database.GetFileByFid(fid)
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "", nil)
+	}
+	destPath := tmpfile.Path
 	err = os.Remove(destPath)
 	if err != nil {
 		fmt.Println(err)
@@ -242,7 +246,8 @@ func handleFileUpdate(ctx *fiber.Ctx) error {
 	defer src.Close()
 	hash := sha256.New()
 	hashStr := hex.EncodeToString(hash.Sum(nil))
-	dest, err := os.Create(destPath)
+	NewdestPath := "./uploads/" + username.Username + "/" + file.Filename
+	dest, err := os.Create(NewdestPath)
 	if err != nil {
 		fmt.Println(err)
 		return sendCommonResponse(ctx, 500, "无法保存更新后的文件", nil)

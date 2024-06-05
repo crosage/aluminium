@@ -5,6 +5,7 @@ import (
 	"chain/structs"
 	"chain/utils"
 	"database/sql"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/json-iterator/go"
@@ -12,6 +13,7 @@ import (
 )
 
 func userRegister(ctx *fiber.Ctx) error {
+	fmt.Println(ctx.Body())
 	user := structs.User{}
 	err := jsoniter.Unmarshal(ctx.Body(), &user)
 	//println(err)
@@ -29,6 +31,7 @@ func userRegister(ctx *fiber.Ctx) error {
 }
 
 func userLogin(ctx *fiber.Ctx) error {
+	fmt.Println(ctx.Body())
 	user := structs.User{}
 	err := jsoniter.Unmarshal(ctx.Body(), &user)
 	if err != nil {

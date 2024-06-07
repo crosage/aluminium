@@ -14,6 +14,10 @@ func InitDatabase() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Fail to open database")
 	}
+	_, err = db.Exec("PRAGMA journal_mode = WAL;")
+	if err != nil {
+		panic(err)
+	}
 	createTables()
 }
 
@@ -43,6 +47,14 @@ func createTables() {
 		FOREIGN KEY(file_id) REFERENCES file(fid),
 		PRIMARY KEY (user_id, file_id)
 	)`
+	createFileChangeLogTableSQL := `
+	CREATE TABLE IF NOT EXISTS file_changelog (
+		user_id INTEGER,
+		file_id INTEGER,
+		file_name TEXT,
+		change_time TEXT,
+		operation TEXT
+	)`
 	_, err := db.Exec(createUserTableSQL)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Fail to create user table")
@@ -56,5 +68,10 @@ func createTables() {
 	_, err = db.Exec(createFileAccessTableSQL)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Fail to create file_access table")
+	}
+
+	_, err = db.Exec(createFileChangeLogTableSQL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Fail to create file_changelog table")
 	}
 }

@@ -22,8 +22,11 @@ func DeleteUser(uid int) error {
 	return err
 }
 
-func GetAllUsers() (int, []structs.User, error) {
-	rows, err := db.Query("SELECT `uid`,`username`,`type` FROM user")
+func GetAllUsers(pagenum int, pagesize int) (int, []structs.User, error) {
+	// 计算 OFFSET
+	offset := (pagenum - 1) * pagesize
+	// 执行带有 LIMIT 和 OFFSET 的 SQL 查询
+	rows, err := db.Query("SELECT `uid`,`username`,`type` FROM user LIMIT ? OFFSET ?", pagesize, offset)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -70,4 +73,30 @@ func GetUserByUid(uid int) (structs.User, error) {
 		return structs.User{}, err
 	}
 	return user, nil
+}
+
+func GetUserByPartialName(partialname string, pagenum int, pagesize int) ([]structs.User, error) {
+	offset := (pagenum - 1) * pagesize
+	rows, err := db.Query("SELECT DISTINCT uid, username FROM user WHERE username LIKE ? LIMIT ? OFFSET ?", "%"+partialname+"%", pagesize, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var users []structs.User
+	for rows.Next() {
+		var user structs.User
+		err := rows.Scan(&user.Uid, &user.Username)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		users = make([]structs.User, 0)
+	}
+	return users, nil
 }

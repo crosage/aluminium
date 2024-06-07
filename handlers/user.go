@@ -13,7 +13,6 @@ import (
 )
 
 func userRegister(ctx *fiber.Ctx) error {
-	fmt.Println(ctx.Body())
 	user := structs.User{}
 	err := jsoniter.Unmarshal(ctx.Body(), &user)
 	//println(err)
@@ -31,7 +30,6 @@ func userRegister(ctx *fiber.Ctx) error {
 }
 
 func userLogin(ctx *fiber.Ctx) error {
-	fmt.Println(ctx.Body())
 	user := structs.User{}
 	err := jsoniter.Unmarshal(ctx.Body(), &user)
 	if err != nil {
@@ -70,7 +68,16 @@ func getAllUsers(ctx *fiber.Ctx) error {
 	if !hasPermission {
 		return sendCommonResponse(ctx, 403, "无权限", nil)
 	}
-	total, users, err := database.GetAllUsers()
+	page, err := strconv.Atoi(ctx.Query("page", "1"))
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "接收页数错误", nil)
+	}
+	// 获取前端传来的 pageSize 参数，默认为 10
+	pageSize, err := strconv.Atoi(ctx.Query("pagesize", "10"))
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "接收页大小错误", nil)
+	}
+	total, users, err := database.GetAllUsers(page, pageSize)
 	if err != nil {
 		return sendCommonResponse(ctx, 403, "非法输入", nil)
 	}
@@ -112,4 +119,29 @@ func updateUser(ctx *fiber.Ctx) error {
 		return sendCommonResponse(ctx, 500, "内部服务器错误", nil)
 	}
 	return sendCommonResponse(ctx, 200, "成功", nil)
+}
+
+func searchUserByUsername(ctx *fiber.Ctx) error {
+	hasPermission := validatePermission(ctx)
+	if !hasPermission {
+		return sendCommonResponse(ctx, 403, "无权限", nil)
+	}
+	partname := ctx.Query("searchstring")
+	page, err := strconv.Atoi(ctx.Query("page", "1"))
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "接收页数错误", nil)
+	}
+	pageSize, err := strconv.Atoi(ctx.Query("pagesize", "10"))
+	if err != nil {
+		return sendCommonResponse(ctx, 500, "接收页大小错误", nil)
+	}
+	users, err := database.GetUserByPartialName(partname, page, pageSize)
+	if err != nil {
+		fmt.Println(err)
+		return sendCommonResponse(ctx, 500, "", nil)
+	}
+	return sendCommonResponse(ctx, 200, "查询成功", map[string]interface{}{
+		"total": len(users),
+		"files": users,
+	})
 }

@@ -126,10 +126,13 @@ func GetFilesAvailableByUid(uid int, pagenum int, pagesize int) ([]structs.File,
 		return nil, err
 	}
 	defer rows.Close()
-
 	for rows.Next() {
 		var file structs.File
 		if err := rows.Scan(&file.Hash, &file.Path, &file.Name, &file.Fid, &file.Uid, &file.Username, &file.ShareCode); err != nil {
+			return nil, err
+		}
+		err := db.QueryRow(`SELECT username FROM file f INNER JOIN user u on u.uid = f.uid WHERE fid=?`, file.Fid).Scan(&file.Username)
+		if err != nil {
 			return nil, err
 		}
 		err = AddFileChangeLog(uid, file.Fid, file.Name, time.Now().Format("2006-01-02 15:04:05"), "Check")

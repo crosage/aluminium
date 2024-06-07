@@ -42,8 +42,11 @@ func InitHandlers(app *fiber.App) {
 	app.Delete("/api/file/:fid", handleFileDelete)
 	app.Post("/api/file/upload", handleFileUpload)
 	app.Post("/api/file/check-share", checkShareCode)
+	app.Get("/api/file/search-files", searchFileByFilename)
+	app.Get("/api/file/search-users", searchUserByUsername)
 	app.Get("/api/file/created-files", getUserCreatedFiles)
 	app.Get("/api/file/available-files", getUserAvailableFiles)
+	app.Get("/api/file/file-changelog", getFileChangeLogByUid)
 	app.Get("/api/file/:fid", getFileByFid)
 	app.Post("/api/file/:fid", handleFileUpdate)
 }

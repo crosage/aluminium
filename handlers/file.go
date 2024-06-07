@@ -89,7 +89,6 @@ func handleFileUpload(ctx *fiber.Ctx) error {
 	}
 	destPath = destPath + "/" + file.Filename
 	if err := encryptAndSaveFile(src, destPath, ctx); err != nil {
-		fmt.Println("here?2")
 		return sendCommonResponse(ctx, 500, "无法保存文件", nil)
 	}
 	str, _ := generateRandomString(16)
@@ -140,7 +139,7 @@ func checkShareCode(ctx *fiber.Ctx) error {
 		fmt.Println(err)
 		return sendCommonResponse(ctx, 500, "服务器内部错误", nil)
 	} else {
-		return sendCommonResponse(ctx, 200, "", nil)
+		return sendCommonResponse(ctx, 200, "文件分享成功", nil)
 	}
 }
 

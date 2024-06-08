@@ -101,6 +101,7 @@ func deleteUser(ctx *fiber.Ctx) error {
 }
 
 func updateUser(ctx *fiber.Ctx) error {
+	fmt.Println("接收到更新请求")
 	hasPermission := validatePermission(ctx)
 	if !hasPermission {
 		return sendCommonResponse(ctx, 403, "无权限", nil)
@@ -110,8 +111,14 @@ func updateUser(ctx *fiber.Ctx) error {
 		return sendCommonResponse(ctx, 403, "非法路径", nil)
 	}
 	user := structs.User{}
+	//fmt.Println(ctx.Body())
 	err = jsoniter.Unmarshal(ctx.Body(), &user)
+	fmt.Println(user)
 	if err != nil || user.Uid != uid {
+		fmt.Println("************")
+		fmt.Println(user.Uid)
+		fmt.Println(uid)
+		fmt.Println("************")
 		return sendCommonResponse(ctx, 403, "非法输入", nil)
 	}
 	err = database.UpdateUser(user)

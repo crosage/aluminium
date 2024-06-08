@@ -3,6 +3,7 @@ package database
 import (
 	"chain/structs"
 	"chain/utils"
+	"fmt"
 )
 
 func CreateUser(user structs.User) error {
@@ -12,8 +13,36 @@ func CreateUser(user structs.User) error {
 }
 
 func UpdateUser(user structs.User) error {
-	user.Password = utils.GeneratePassHash(user.Password)
-	_, err := db.Exec("UPDATE user SET `username` = ?,`passhash` = ?,`type` = ? WHERE `uid` = ?", user.Username, user.Password, user.Type, user.Uid)
+	fields := make(map[string]interface{})
+	if user.Username != "" {
+		fields["username"] = user.Username
+	}
+	if user.Password != "" {
+		fields["passhash"] = utils.GeneratePassHash(user.Password)
+	}
+	if user.Type != 0 {
+		fields["type"] = user.Type
+	}
+	if len(fields) == 0 {
+		return nil
+	}
+	print("ffffffffffffff")
+	fmt.Println(fields)
+	query := "UPDATE user SET "
+	args := []interface{}{}
+	i := 0
+	for k, v := range fields {
+		if i > 0 {
+			query += ", "
+		}
+		query += "`" + k + "` = ?"
+		args = append(args, v)
+		i++
+	}
+	query += " WHERE `uid` = ?"
+	args = append(args, user.Uid)
+
+	_, err := db.Exec(query, args...)
 	return err
 }
 
